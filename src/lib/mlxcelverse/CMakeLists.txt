@@ -66,6 +66,7 @@ function(mlx_apply_source_overlays mlx_source_dir)
   # `load_safe` bodies.
   set(_metal_patch_files
       "mlx/backend/metal/device.cpp"
+      "mlx/backend/metal/kernels/CMakeLists.txt"
       "mlx/backend/metal/kernels/fp_quantized.h"
       "mlx/backend/metal/kernels/fp_quantized_nax.h"
       "mlx/backend/metal/kernels/quantized.h"
@@ -336,7 +337,15 @@ else()
     #     `)` as ending the declaration, so one there would hide the tag
     #     instead of being read past.
     # Both parsers fail loudly rather than guess when the shape does not hold.
-    GIT_TAG 9f806b3606eaa9f7c807238f6bd465185cd94d6d)
+    # Pinned to the MLX revision the published mlxcel 0.8.1 metallib was built
+    # from, not to the newest one. MLX renamed every quantized kernel between
+    # 7ca40033 and 9f806b36 (the `_hgs_0` suffix), so a build against 9f806b36
+    # asks the released `mlx.metallib` for kernels it does not contain and the
+    # first quantized dequantize aborts:
+    #   [metal::Device] Unable to load kernel affine_dequantize_float16_t_gs_64_b_6_hgs_0
+    # A host with a real Metal toolchain can compile its own kernels at any pin;
+    # this one reuses the release artefact, so the pin has to follow it.
+    GIT_TAG 7ca40033132dae444d45f7fc3daae57e24c13f6c)
 
   # Use FetchContent_Populate + add_subdirectory so we can apply source
   # overlays before the MLX build system processes the files.
